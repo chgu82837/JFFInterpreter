@@ -44,7 +44,7 @@ function Parser(rule,start_state_index,debug){
             var option = rule[nter];
             var expand = false;
             var tmp;
-            var exception = "Unknown syntax on nter [" + nter + "] input: [ " + self.print_digest() + " ]";
+            var exception = "Parser Error: Unknown syntax on nter [" + nter + "]\nRemaining input: [ " + self.print_digest() + " ]";
 
             if(digest.length == 0 && option[""])
                 expand = option[""];
@@ -86,7 +86,7 @@ function Parser(rule,start_state_index,debug){
                         attr = tmp;
                     break;
                 default:
-                    throw "Type "+(typeof expand[i])+" not allowed in expansion!";
+                    throw "Parser Rule Error: Type "+(typeof expand[i])+" not allowed in expansion!";
                 }
             }
 
