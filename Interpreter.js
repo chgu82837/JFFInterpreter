@@ -326,21 +326,26 @@ else
 
 var lex_result,par_result;
 
-while((input = readlineSync.question('> ')) != "exit"){
-    try{
-        // console.log("Lexer starting: ======================");
-        lex_result = lex.scan(input);
-        // console.log("Lexer result: ======================");
-        // console.log(lex_result);
+require('fs').readFile('README.md', 'utf8', function (err,data) {
+    if(!err)
+        console.log(data + "Please input: (input 'exit' to exit)");
+    while((input = readlineSync.question('> ')) != "exit"){
+        try{
+            // console.log("Lexer starting: ======================");
+            lex_result = lex.scan(input);
+            // console.log("Lexer result: ======================");
+            // console.log(lex_result);
 
-        // console.log("Parser starting: ======================");
-        par_result = par.scan(lex_result);
-        // console.log("Parser result: ======================");
-        // console.log(par_result);
+            // console.log("Parser starting: ======================");
+            par_result = par.scan(lex_result);
+            // console.log("Parser result: ======================");
+            // console.log(par_result);
 
-        // console.log("symbol_table:");
-        // console.log(symbol_table);
-    }catch(msg){
-        console.log(msg);
+            // console.log("symbol_table:");
+            // console.log(symbol_table);
+        }catch(msg){
+            console.log(msg);
+        }
     }
-}
+});
+
