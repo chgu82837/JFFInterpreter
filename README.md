@@ -5,22 +5,22 @@
 ## Feature
 
  * 基本功能:
-    * set間做交集(.),聯集(+),差集(-),乘集(*(卡氏積)),印出計算後結果
+    * `set`間做交集(`.`),聯集(`+`),差集(`-`),乘集(`*`(卡氏積)),印出計算後結果
 
  * 加分功能:
-    * Allow Type Definition : char/int
-    * 印出計算後之Average : print(S avg)
-    * 印出計算後之Average : print(S total)
-    * 計算出set內元素個數 : |S|
+    * Allow Type Definition : `char` / `int`
+    * 印出計算後之Average : `print(S avg)`
+    * 印出計算後之Average : `print(S total)`
+    * 計算出set內元素個數 : `|S|`
 
 ## Usage
 
 Act as a interpreter!
 
- * Input i.e. : int S={1,2,3};char T={a,b,c};
- * Input i.e. : print(S+T);  ==> 印出S+T所有元素
- * Input i.e. : print(S+T avg);  ==> 印出S+T之平均
- * Input i.e. : |S+T|  ==> 印出S+T之元素個數
+ * Input i.e. : `int S={1,2,3};char T={a,b,c};`
+ * Input i.e. : `print(S+T);`  ==> 印出S+T所有元素
+ * Input i.e. : `print(S+T avg);`  ==> 印出S+T之平均
+ * Input i.e. : `|S+T|`  ==> 印出S+T之元素個數
 
 ```
     ____  ____  _   __    ______  __  ______  __
