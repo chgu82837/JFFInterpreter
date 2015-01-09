@@ -59,7 +59,9 @@ function Parser(rule,start_state_index,debug){
             if(!attr)
                 attr = {};
 
-            var_dump(nter + " >> [ " + self.print_digest() + " ]");
+            var_dump("nter: " + nter);
+            var_dump(" >> remaining: [ " + self.print_digest() + " ]");
+            var_dump(" >> expansion: [ " + join_ele(expand,"nter") + " ]");
             stack_level++;
 
             for(var i = 0; i < expand.length; i++)
@@ -161,7 +163,6 @@ if(require.main === module){
         }
     }
 
-    var readlineSync = require('readline-sync');
     var input;
     var lex,par;
     lex = Lexer(lexer_rule);
