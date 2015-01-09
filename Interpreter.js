@@ -48,7 +48,7 @@ var parser_rule = {
         ],
         "|":[
             "|",{nter:"T"},"|",
-            function(attr){ console.log(attr[1].val); console.log("count: " + attr[1].val.length); }
+            function(attr){ console.log("Count: " + attr[1].val.length); }
         ],
         "":[]
     },
@@ -76,11 +76,10 @@ var parser_rule = {
             function(attr){attr[2].val = attr[0].val; return attr;},
             {nter:"Y"},
             function(attr){
-                if(attr[2].val)
-                    attr.val = attr[2].val;
+                if(attr[2].result)
+                    attr.val = attr[2].result;
                 else
                     attr.val = symbol_table[attr[0].val];
-                console.log(attr);
                 return attr;
             }
         ]
@@ -89,7 +88,7 @@ var parser_rule = {
         "+":[
             "+",{nter:"R"},
             function(attr){
-                var op1 = symbol_table[attr.val];
+                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
                 var op2 = symbol_table[attr[1].val];
                 var result = op1.concat([]);
                 var i;
@@ -100,16 +99,22 @@ var parser_rule = {
                     }
                     result[i] = op2[k];
                 }
-                attr.val = result;
-                //console.log(result);
+                attr.result = result;
+                attr[3].inter = result;
                 return attr;
             },
-            {nter:"Y"}
+            {nter:"Y"},
+            function(attr){
+                if(attr[3].result){
+                    attr.result = attr[3].result;
+                    return attr;
+                }
+            },
         ],
         "-":[
             "-",{nter:"R"},
             function(attr){
-                var op1 = symbol_table[attr.val];
+                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
                 var op2 = symbol_table[attr[1].val];
                 var result = op1.concat([]);
                 for (var k in op2) {
@@ -118,16 +123,22 @@ var parser_rule = {
                             result.splice(i,1);
                     }
                 }
-                attr.val = result;
-                //console.log(result);
+                attr.result = result;
+                attr[3].inter = result;
                 return attr;
             },
-            {nter:"Y"}
+            {nter:"Y"},
+            function(attr){
+                if(attr[3].result){
+                    attr.result = attr[3].result;
+                    return attr;
+                }
+            },
         ],
         "*":[
             "*",{nter:"R"},
             function(attr){
-                var op1 = symbol_table[attr.val];
+                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
                 var op2 = symbol_table[attr[1].val];
                 var result = [];
                 for (var k in op1) {
@@ -138,16 +149,22 @@ var parser_rule = {
                             result.push([op1[k],op2[j]]);
                     }
                 }
-                attr.val = result;
-                //console.log(result);
+                attr.result = result;
+                attr[3].inter = result;
                 return attr;
             },
-            {nter:"Y"}
+            {nter:"Y"},
+            function(attr){
+                if(attr[3].result){
+                    attr.result = attr[3].result;
+                    return attr;
+                }
+            },
         ],
         ".":[
             ".",{nter:"R"},
             function(attr){
-                var op1 = symbol_table[attr.val];
+                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
                 var op2 = symbol_table[attr[1].val];
                 var result = [];
                 for (var k in op1) {
@@ -156,11 +173,17 @@ var parser_rule = {
                             result.push(op1[k]);
                     }
                 }
-                attr.val = result;
-                //console.log(result);
+                attr.result = result;
+                attr[3].inter = result;
                 return attr;
             },
-            {nter:"Y"}
+            {nter:"Y"},
+            function(attr){
+                if(attr[3].result){
+                    attr.result = attr[3].result;
+                    return attr;
+                }
+            },
         ],
         "avg":[],
         "total":[],
@@ -180,9 +203,11 @@ var parser_rule = {
             function(attr){
                 var sum = 0;
                 for(var k in attr.val){
+                    if(typeof attr.val[k] !== "number")
+                        throw "Some elements are not number!";
                     sum += attr.val[k];
                 }
-                attr.result = sum/attr.val.length;
+                attr.result = "Average: " + (sum/attr.val.length);
                 return attr;
             }
         ],
@@ -191,9 +216,11 @@ var parser_rule = {
             function(attr){
                 var sum = 0;
                 for(var k in attr.val){
+                    if(typeof attr.val[k] !== "number")
+                        throw "Some elements are not number!";
                     sum += attr.val[k];
                 }
-                attr.result = sum;
+                attr.result = "Total: " + (sum);
                 return attr;
             }
         ],
@@ -301,18 +328,18 @@ var lex_result,par_result;
 
 while((input = readlineSync.question('> ')) != "exit"){
     try{
-        console.log("Lexer starting: ======================");
+        // console.log("Lexer starting: ======================");
         lex_result = lex.scan(input);
-        console.log("Lexer result: ======================");
-        console.log(lex_result);
+        // console.log("Lexer result: ======================");
+        // console.log(lex_result);
 
-        console.log("Parser starting: ======================");
+        // console.log("Parser starting: ======================");
         par_result = par.scan(lex_result);
-        console.log("Parser result: ======================");
-        console.log(par_result);
+        // console.log("Parser result: ======================");
+        // console.log(par_result);
 
-        console.log("symbol_table:");
-        console.log(symbol_table);
+        // console.log("symbol_table:");
+        // console.log(symbol_table);
     }catch(msg){
         console.log(msg);
     }
