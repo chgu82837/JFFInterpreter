@@ -318,34 +318,37 @@ var lexer_rule = {
 
 var input;
 var lex,par;
-lex = Lexer(lexer_rule);
-if(process.argv[2] == "--debug")
-    par = Parser(parser_rule,undefined,true);
-else
-    par = Parser(parser_rule);
+var debug = process.argv[2] == "--debug";
+lex = Lexer(lexer_rule,undefined,debug);
+par = Parser(parser_rule,undefined,debug);
+
+function var_dump(msg){
+    if(debug)
+        console.log(msg);
+}
 
 var lex_result,par_result;
 
-require('fs').readFile('README.md', 'utf8', function (err,data) {
-    if(!err)
-        console.log(data + "Please input: (input 'exit' to exit)");
-    while((input = readlineSync.question('> ')) != "exit"){
-        try{
-            // console.log("Lexer starting: ======================");
-            lex_result = lex.scan(input);
-            // console.log("Lexer result: ======================");
-            // console.log(lex_result);
+var fs = require('fs');
+var contents = fs.readFileSync('README.md', 'utf8').toString();
+console.log(contents + "Please input: (input 'exit' to exit)");
 
-            // console.log("Parser starting: ======================");
-            par_result = par.scan(lex_result);
-            // console.log("Parser result: ======================");
-            // console.log(par_result);
+while((input = readlineSync.question('> ')) != "exit"){
+    try{
+        var_dump("Lexer starting: ======================");
+        lex_result = lex.scan(input);
+        var_dump("Lexer result: ======================");
+        var_dump(lex_result);
 
-            // console.log("symbol_table:");
-            // console.log(symbol_table);
-        }catch(msg){
-            console.log(msg);
-        }
+        var_dump("Parser starting: ======================");
+        par_result = par.scan(lex_result);
+        var_dump("Parser result: ======================");
+        var_dump(par_result);
+
+        var_dump("symbol_table:");
+        var_dump(symbol_table);
+    }catch(msg){
+        console.log(msg);
     }
-});
+}
 

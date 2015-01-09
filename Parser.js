@@ -44,7 +44,12 @@ function Parser(rule,start_state_index,debug){
             var option = rule[nter];
             var expand = false;
             var tmp;
-            var exception = "Parser Error: Unknown syntax on nter [" + nter + "]\nRemaining input: [ " + self.print_digest() + " ]";
+            var exception = [
+                "Parser Error: Unknown syntax on nter [" + nter + "]",
+                "Remaining: [ " + self.print_digest() + " ]",
+                "Expecting: [" + join_ele(expand,"nter") + "]"
+            ];
+            var exception_msg = exception.join("\n");
 
             if(digest.length == 0 && option[""])
                 expand = option[""];
@@ -55,13 +60,13 @@ function Parser(rule,start_state_index,debug){
                 }
             }
             if(!expand)
-                throw exception;
+                throw exception_msg;
             if(!attr)
                 attr = {};
 
             var_dump("nter: " + nter);
-            var_dump(" >> remaining: [ " + self.print_digest() + " ]");
-            var_dump(" >> expansion: [ " + join_ele(expand,"nter") + " ]");
+            var_dump("## " + exception[1]);
+            var_dump("## " + exception[2]);
             stack_level++;
 
             for(var i = 0; i < expand.length; i++)
@@ -69,6 +74,8 @@ function Parser(rule,start_state_index,debug){
             for(var i in expand){
                 switch(typeof expand[i]){
                 case "string": // this is a terminal
+                    if(!digest[0])
+                        throw exception;
                     var_dump("ter: " + digest[0].type);
                     if(expand[i] != digest[0].type)
                         throw exception;
