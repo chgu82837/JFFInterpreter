@@ -47,9 +47,8 @@ function Parser(rule,start_state_index,debug){
             var exception = [
                 "Parser Error: Unknown syntax on nter [" + nter + "]",
                 "Remaining: [ " + self.print_digest() + " ]",
-                "Expecting: [" + join_ele(expand,"nter") + "]"
+                "No look-a-head entry is available!"
             ];
-            var exception_msg = exception.join("\n");
 
             if(digest.length == 0 && option[""])
                 expand = option[""];
@@ -60,9 +59,12 @@ function Parser(rule,start_state_index,debug){
                 }
             }
             if(!expand)
-                throw exception_msg;
+                throw exception.join("\n");
             if(!attr)
                 attr = {};
+
+            exception[2] = "Expecting: [ " + join_ele(expand,"nter") + " ]";
+            var exception_msg = exception.join("\n");
 
             var_dump("nter: " + nter);
             var_dump("## " + exception[1]);
@@ -75,10 +77,10 @@ function Parser(rule,start_state_index,debug){
                 switch(typeof expand[i]){
                 case "string": // this is a terminal
                     if(!digest[0])
-                        throw exception;
+                        throw exception_msg;
                     var_dump("ter: " + digest[0].type);
                     if(expand[i] != digest[0].type)
-                        throw exception;
+                        throw exception_msg;
                     for(var j in digest[0])
                         attr[i][j] = digest[0][j];
                     digest.shift();
