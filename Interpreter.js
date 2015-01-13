@@ -3,6 +3,7 @@ var Lexer = require('./Lexer.js');
 var Parser = require('./Parser.js');
 
 var symbol_table = {};
+var id_table = ['AA'];
 
 var parser_rule = {
     "start":{
@@ -24,14 +25,76 @@ var parser_rule = {
             "char","id","=","{","letter",
             function(attr){attr[6].val = [attr[4].lexval]; return attr; },
             {nter:"L"},
-            function(attr){ symbol_table[attr[1].lexval] = attr[6].val; return attr;},
+            function(attr){ 
+                var id = attr[1].lexval,door = 1;
+                for(var i=0;i<id_table.length;i++){
+                    if(id==id_table[i]){
+                        door = 0;
+                        break;
+                    }
+                }
+                if(door==1){
+                    id_table.push(id);
+                    var op = attr[6].val; 
+                    var real = [],flag = 0;
+                    real.push(op[0]);
+                    for(var k=1;k<op.length;k++){
+                        for(var l=0;l<real.length;l++){
+                            if(op[k]==real[l]){
+                                flag = 1;
+                                break;
+                            }
+                        }
+                        if(flag==0){
+                            real.push(op[k]);
+                        }
+                        flag = 0;
+                    }
+                    symbol_table[attr[1].lexval] = real;
+                    return attr;
+                }
+                else{
+                    console.log("Re-defined variable : " + id);
+                }
+            },
             "}",";",{nter:"E"}
         ],
         "int":[
             "int","id","=","{","digit",
             function(attr){attr[6].val = [parseInt(attr[4].lexval)]; return attr; },
             {nter:"D"},
-            function(attr){ symbol_table[attr[1].lexval] = attr[6].val; return attr;},
+            function(attr){ 
+                var id = attr[1].lexval,door = 1;
+                for(var i=0;i<id_table.length;i++){
+                    if(id==id_table[i]){
+                        door = 0;
+                        break;
+                    }
+                }
+                if(door==1){
+                    id_table.push(id);
+                    var op = attr[6].val; 
+                    var real = [],flag = 0;
+                    real.push(op[0]);
+                    for(var k=1;k<op.length;k++){
+                        for(var l=0;l<real.length;l++){
+                            if(op[k]==real[l]){
+                                flag = 1;
+                                break;
+                            }
+                        }
+                        if(flag==0){
+                            real.push(op[k]);
+                        }
+                        flag = 0;
+                    }
+                    symbol_table[attr[1].lexval] = real;
+                    return attr;
+                }
+                else{
+                    console.log("Re-defined variable : " + id);
+                }
+            },
             "}",";",{nter:"E"}
         ],
         "print":[
@@ -335,6 +398,7 @@ console.log(contents + "Please input: (input 'exit' to exit)");
 
 while((input = readlineSync.question('> ')) != "exit"){
     try{
+
         var_dump("Lexer starting: ======================");
         lex_result = lex.scan(input);
         var_dump("Lexer result: ======================");
