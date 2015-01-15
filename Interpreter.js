@@ -3,7 +3,7 @@ var Lexer = require('./Lexer.js');
 var Parser = require('./Parser.js');
 
 var symbol_table = {};
-var id_table = ['AA'];
+var id_table = [];
 
 function get_id_value(id){
     if(!symbol_table[id])
@@ -17,6 +17,9 @@ var parser_rule = {
             {nter:"E"},
         ],
         "int":[
+            {nter:"E"},
+        ],
+        "float":[
             {nter:"E"},
         ],
         "print":[
@@ -66,7 +69,7 @@ var parser_rule = {
             "}",";",{nter:"E"}
         ],
         "float":[
-            "float","id","=","{"
+            "float","id","=","{",
             function(attr){attr[5].val = []; return attr; },
             {nter:"F"},
             function(attr){ 
@@ -79,7 +82,7 @@ var parser_rule = {
                 }
                 if(door==1){
                     id_table.push(id);
-                    var op = attr[6].val; 
+                    var op = attr[5].val; 
                     var real = [],flag = 0;
                     real.push(op[0]);
                     for(var k=1;k<op.length;k++){
@@ -193,7 +196,7 @@ var parser_rule = {
         ",":[
             ",",
             function(attr){ attr[2].val = attr.val; return attr;},
-            "F",
+            {nter:"F"},
             function(attr){ attr.val = attr[2].val; return attr;},
         ],
         "}":[]
@@ -207,7 +210,7 @@ var parser_rule = {
                 if(attr[2].result)
                     attr.val = attr[2].result;
                 else
-                    attr.val = symbol_table[attr[0].val];
+                    attr.val = get_id_value(attr[0].val);
                 return attr;
             }
         ]
@@ -216,8 +219,8 @@ var parser_rule = {
         "+":[
             "+",{nter:"R"},
             function(attr){
-                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
-                var op2 = symbol_table[attr[1].val];
+                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
+                var op2 = get_id_value(attr[1].val);
                 var result = op1.concat([]);
                 var i;
                 for (var k in op2) {
@@ -242,8 +245,8 @@ var parser_rule = {
         "-":[
             "-",{nter:"R"},
             function(attr){
-                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
-                var op2 = symbol_table[attr[1].val];
+                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
+                var op2 = get_id_value(attr[1].val);
                 var result = op1.concat([]);
                 for (var k in op2) {
                     for (i = 0; i < result.length; i++) {
@@ -266,8 +269,8 @@ var parser_rule = {
         "*":[
             "*",{nter:"R"},
             function(attr){
-                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
-                var op2 = symbol_table[attr[1].val];
+                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
+                var op2 = get_id_value(attr[1].val);
                 var result = [];
                 for (var k in op1) {
                     for(var j in op2){
@@ -292,8 +295,8 @@ var parser_rule = {
         ".":[
             ".",{nter:"R"},
             function(attr){
-                var op1 = (attr.inter) ? attr.inter : symbol_table[attr.val];
-                var op2 = symbol_table[attr[1].val];
+                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
+                var op2 = get_id_value(attr[1].val);
                 var result = [];
                 for (var k in op1) {
                     for(var j in op2){
@@ -401,11 +404,11 @@ var lexer_rule = {
     },
     "digit":{
         "digit":"[0-9]",
-        "fdigit":".",
+        "fdigit":"\\.",
         "Accepted":true
     },
     "fdigit":{
-        "digit":"[0-9]",
+        "fdigit":"[0-9]",
         "Accepted":true
     },
     "letter":{
