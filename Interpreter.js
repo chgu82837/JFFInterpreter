@@ -5,6 +5,12 @@ var Parser = require('./Parser.js');
 var symbol_table = {};
 var id_table = ['AA'];
 
+function get_id_value(id){
+    if(!symbol_table[id])
+        throw "undefined variable!";
+    return symbol_table[id];
+}
+
 var parser_rule = {
     "start":{
         "char":[
@@ -25,6 +31,44 @@ var parser_rule = {
             "char","id","=","{","letter",
             function(attr){attr[6].val = [attr[4].lexval]; return attr; },
             {nter:"L"},
+            function(attr){ 
+                var id = attr[1].lexval,door = 1;
+                for(var i=0;i<id_table.length;i++){
+                    if(id==id_table[i]){
+                        door = 0;
+                        break;
+                    }
+                }
+                if(door==1){
+                    id_table.push(id);
+                    var op = attr[6].val; 
+                    var real = [],flag = 0;
+                    real.push(op[0]);
+                    for(var k=1;k<op.length;k++){
+                        for(var l=0;l<real.length;l++){
+                            if(op[k]==real[l]){
+                                flag = 1;
+                                break;
+                            }
+                        }
+                        if(flag==0){
+                            real.push(op[k]);
+                        }
+                        flag = 0;
+                    }
+                    symbol_table[attr[1].lexval] = real;
+                    return attr;
+                }
+                else{
+                    console.log("Re-defined variable : " + id);
+                }
+            },
+            "}",";",{nter:"E"}
+        ],
+        "float":[
+            "float","id","=","{"
+            function(attr){attr[5].val = []; return attr; },
+            {nter:"F"},
             function(attr){ 
                 var id = attr[1].lexval,door = 1;
                 for(var i=0;i<id_table.length;i++){
@@ -130,6 +174,27 @@ var parser_rule = {
             function(attr){ attr.val.push(parseInt(attr[1].lexval)); attr[3].val = attr.val; return attr;},
             {nter:"D"},
             function(attr){attr.val = attr[3].val; return attr;}
+        ],
+        "}":[]
+    },
+    "F":{
+        "fdigit":[
+            "fdigit",
+            function(attr){ attr.val.push(parseFloat(attr[0].lexval)); attr[2].val = attr.val; return attr;},
+            {nter:"F"},
+            function(attr){attr.val = attr[2].val; return attr;}
+        ],
+        "digit":[
+            "digit",
+            function(attr){ attr.val.push(parseInt(attr[0].lexval)); attr[2].val = attr.val; return attr;},
+            {nter:"F"},
+            function(attr){attr.val = attr[2].val; return attr;}
+        ],
+        ",":[
+            ",",
+            function(attr){ attr[2].val = attr.val; return attr;},
+            "F",
+            function(attr){ attr.val = attr[2].val; return attr;},
         ],
         "}":[]
     },
@@ -295,6 +360,7 @@ var lexer_rule = {
     "start":{
         "char":"char",
         "int":"int",
+        "float":"float",
         "print":"print",
         "avg":"avg",
         "total":"total",
@@ -321,6 +387,9 @@ var lexer_rule = {
     "int":{
         "Accepted":true
     },
+    "float":{
+        "Accepted":true
+    },
     "print":{
         "Accepted":true
     },
@@ -331,6 +400,11 @@ var lexer_rule = {
         "Accepted":true
     },
     "digit":{
+        "digit":"[0-9]",
+        "fdigit":".",
+        "Accepted":true
+    },
+    "fdigit":{
         "digit":"[0-9]",
         "Accepted":true
     },
