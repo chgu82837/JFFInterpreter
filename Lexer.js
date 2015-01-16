@@ -41,7 +41,7 @@ function Lexer(rule,start_state_index,debug){
                 }
                 if(typeof rule[state_index][tran] === "string"){
                     // console.log("creating RegExp for " + tran);
-                    rule[state_index][tran] = new RegExp("^" + rule[state_index][tran]);
+                    rule[state_index][tran] = new RegExp("^(" + rule[state_index][tran] + ")");
                 }
                 if(debug)
                     console.log("... " + tran + " : " + rule[state_index][tran]);
