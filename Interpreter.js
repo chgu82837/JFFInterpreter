@@ -2,420 +2,213 @@ var readlineSync = require('readline-sync');
 var Lexer = require('./Lexer.js');
 var Parser = require('./Parser.js');
 
-var symbol_table = {};
-var id_table = [];
-
-function get_id_value(id){
-    if(!symbol_table[id])
-        throw "undefined variable!";
-    return symbol_table[id];
-}
-
 var parser_rule = {
     "start":{
-        "char":[
-            {nter:"E"},
+        "(":[
+            {nter:"expression"},
+            function(a){
+                a[2].val = a[0].val;
+                return a;
+            },
+            {nter:"stmt_t"},
+            function(a){
+                a.val = a[2].val;
+                console.log("Result: " + a.val);
+                return a;
+            },
         ],
-        "int":[
-            {nter:"E"},
+        "number":[
+            {nter:"expression"},
+            function(a){
+                a[2].val = a[0].val;
+                return a;
+            },
+            {nter:"stmt_t"},
+            function(a){
+                a.val = a[2].val;
+                console.log("Result: " + a.val);
+                return a;
+            },
         ],
-        "float":[
-            {nter:"E"},
-        ],
-        "print":[
-            {nter:"E"},
-        ],
-        "|":[
-            {nter:"E"},
-        ]
     },
-    "E":{
-        "char":[
-            "char","id","=","{","letter",
-            function(attr){attr[6].val = [attr[4].lexval]; return attr; },
-            {nter:"L"},
-            function(attr){ 
-                var id = attr[1].lexval,door = 1;
-                for(var i=0;i<id_table.length;i++){
-                    if(id==id_table[i]){
-                        door = 0;
-                        break;
-                    }
-                }
-                if(door==1){
-                    id_table.push(id);
-                    var op = attr[6].val; 
-                    var real = [],flag = 0;
-                    real.push(op[0]);
-                    for(var k=1;k<op.length;k++){
-                        for(var l=0;l<real.length;l++){
-                            if(op[k]==real[l]){
-                                flag = 1;
-                                break;
-                            }
-                        }
-                        if(flag==0){
-                            real.push(op[k]);
-                        }
-                        flag = 0;
-                    }
-                    symbol_table[attr[1].lexval] = real;
-                    return attr;
-                }
-                else{
-                    console.log("Re-defined variable : " + id);
-                }
+    "stmt_t":{
+        ";":[
+            ";",{nter:"expression"},
+            function(a){
+                a[4].val0 = a.val;
+                a[4].val1 = a[1].val;
+                return a;
             },
-            "}",";",{nter:"E"}
-        ],
-        "float":[
-            "float","id","=","{",
-            function(attr){attr[5].val = []; return attr; },
-            {nter:"F"},
-            function(attr){ 
-                var id = attr[1].lexval,door = 1;
-                for(var i=0;i<id_table.length;i++){
-                    if(id==id_table[i]){
-                        door = 0;
-                        break;
-                    }
-                }
-                if(door==1){
-                    id_table.push(id);
-                    var op = attr[5].val; 
-                    var real = [],flag = 0;
-                    real.push(op[0]);
-                    for(var k=1;k<op.length;k++){
-                        for(var l=0;l<real.length;l++){
-                            if(op[k]==real[l]){
-                                flag = 1;
-                                break;
-                            }
-                        }
-                        if(flag==0){
-                            real.push(op[k]);
-                        }
-                        flag = 0;
-                    }
-                    symbol_table[attr[1].lexval] = real;
-                    return attr;
-                }
-                else{
-                    console.log("Re-defined variable : " + id);
-                }
+            ";",{nter:"stmt_u"},
+            function(a){
+                a.val = a[4].val;
+                return a;
             },
-            "}",";",{nter:"E"}
-        ],
-        "int":[
-            "int","id","=","{","digit",
-            function(attr){attr[6].val = [parseInt(attr[4].lexval)]; return attr; },
-            {nter:"D"},
-            function(attr){ 
-                var id = attr[1].lexval,door = 1;
-                for(var i=0;i<id_table.length;i++){
-                    if(id==id_table[i]){
-                        door = 0;
-                        break;
-                    }
-                }
-                if(door==1){
-                    id_table.push(id);
-                    var op = attr[6].val; 
-                    var real = [],flag = 0;
-                    real.push(op[0]);
-                    for(var k=1;k<op.length;k++){
-                        for(var l=0;l<real.length;l++){
-                            if(op[k]==real[l]){
-                                flag = 1;
-                                break;
-                            }
-                        }
-                        if(flag==0){
-                            real.push(op[k]);
-                        }
-                        flag = 0;
-                    }
-                    symbol_table[attr[1].lexval] = real;
-                    return attr;
-                }
-                else{
-                    console.log("Re-defined variable : " + id);
-                }
-            },
-            "}",";",{nter:"E"}
-        ],
-        "print":[
-            "print","(",{nter:"T"},
-            function(attr){attr[4].val = attr[2].val; return attr;},
-            {nter:"A"},")",
-            function(attr){
-                if(attr[4].result)
-                    console.log(attr[4].result);
-                else
-                    console.log(attr[2].val);
-            },
-            ";",{nter:"E"}
-        ],
-        "|":[
-            "|",{nter:"T"},"|",
-            function(attr){ console.log("Count: " + attr[1].val.length); }
         ],
         "":[]
     },
-    "L":{
-        ",":[
-            ",","letter",
-            function(attr){ attr.val.push(attr[1].lexval); attr[3].val = attr.val; return attr;},
-            {nter:"L"},
-            function(attr){attr.val = attr[3].val; return attr;}
-        ],
-        "}":[]
-    },
-    "D":{
-        ",":[
-            ",","digit",
-            function(attr){ attr.val.push(parseInt(attr[1].lexval)); attr[3].val = attr.val; return attr;},
-            {nter:"D"},
-            function(attr){attr.val = attr[3].val; return attr;}
-        ],
-        "}":[]
-    },
-    "F":{
-        "fdigit":[
-            "fdigit",
-            function(attr){ attr.val.push(parseFloat(attr[0].lexval)); attr[2].val = attr.val; return attr;},
-            {nter:"F"},
-            function(attr){attr.val = attr[2].val; return attr;}
-        ],
-        "digit":[
-            "digit",
-            function(attr){ attr.val.push(parseInt(attr[0].lexval)); attr[2].val = attr.val; return attr;},
-            {nter:"F"},
-            function(attr){attr.val = attr[2].val; return attr;}
-        ],
-        ",":[
-            ",",
-            function(attr){ attr[2].val = attr.val; return attr;},
-            {nter:"F"},
-            function(attr){ attr.val = attr[2].val; return attr;},
-        ],
-        "}":[]
-    },
-    "T":{
-        "id":[
-            {nter:"R"},
-            function(attr){attr[2].val = attr[0].val; return attr;},
-            {nter:"Y"},
-            function(attr){
-                if(attr[2].result)
-                    attr.val = attr[2].result;
-                else
-                    attr.val = get_id_value(attr[0].val);
-                return attr;
-            }
-        ]
-    },
-    "Y":{
+    "stmt_u":{
         "+":[
-            "+",{nter:"R"},
-            function(attr){
-                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
-                var op2 = get_id_value(attr[1].val);
-                var result = op1.concat([]);
-                var i;
-                for (var k in op2) {
-                    for (i = 0; i < result.length; i++) {
-                        if(op2[k] == result[i])
-                            break;
-                    }
-                    result[i] = op2[k];
-                }
-                attr.result = result;
-                attr[3].inter = result;
-                return attr;
+            function(a){
+                if(a.val0 > a.val1)
+                    a[2].val = a.val0;
+                else
+                    a[2].val = a.val1;
+                return a;
             },
-            {nter:"Y"},
-            function(attr){
-                if(attr[3].result){
-                    attr.result = attr[3].result;
-                    return attr;
-                }
+            "+",{nter:"stmt_t"},
+            function(a){
+                 a.val = a[2].val;
+                return a;
+            }
+        ],
+        "-":[
+            function(a){
+                if(a.val0 < a.val1)
+                    a[2].val = a.val0;
+                else
+                    a[2].val = a.val1;
+                return a;
+            },
+            "-",{nter:"stmt_t"},
+            function(a){
+                 a.val = a[2].val;
+                return a;
+            }
+        ],
+    },
+    "expression":{
+        "(":[
+            {nter:"term"},
+            function(a){
+                a[2].val = a[0].val;
+                return a;
+            },
+            {nter:"expression_t"},
+            function(a){
+                a.val = a[2].val;
+                return a;
+            },
+        ],
+        "number":[
+            {nter:"term"},
+            function(a){
+                a[2].val = a[0].val;
+                return a;
+            },
+            {nter:"expression_t"},
+            function(a){
+                a.val = a[2].val;
+                return a;
+            },
+        ],
+    },
+    "expression_t":{
+        "+":[
+            "+",{nter:"expression"},
+            function(a){
+                a.val += a[1].val;
+                return a;
             },
         ],
         "-":[
-            "-",{nter:"R"},
-            function(attr){
-                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
-                var op2 = get_id_value(attr[1].val);
-                var result = op1.concat([]);
-                for (var k in op2) {
-                    for (i = 0; i < result.length; i++) {
-                        if(op2[k] == result[i])
-                            result.splice(i,1);
-                    }
-                }
-                attr.result = result;
-                attr[3].inter = result;
-                return attr;
-            },
-            {nter:"Y"},
-            function(attr){
-                if(attr[3].result){
-                    attr.result = attr[3].result;
-                    return attr;
-                }
+            "-",{nter:"expression"},
+            function(a){
+                a.val -= a[1].val;
+                return a;
             },
         ],
-        "*":[
-            "*",{nter:"R"},
-            function(attr){
-                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
-                var op2 = get_id_value(attr[1].val);
-                var result = [];
-                for (var k in op1) {
-                    for(var j in op2){
-                        if(op1[k]==op2[j])
-                            result.push([op1[k]]);
-                        else
-                            result.push([op1[k],op2[j]]);
-                    }
-                }
-                attr.result = result;
-                attr[3].inter = result;
-                return attr;
-            },
-            {nter:"Y"},
-            function(attr){
-                if(attr[3].result){
-                    attr.result = attr[3].result;
-                    return attr;
-                }
-            },
-        ],
-        ".":[
-            ".",{nter:"R"},
-            function(attr){
-                var op1 = (attr.inter) ? attr.inter : get_id_value(attr.val);
-                var op2 = get_id_value(attr[1].val);
-                var result = [];
-                for (var k in op1) {
-                    for(var j in op2){
-                        if(op1[k] == op2[j])
-                            result.push(op1[k]);
-                    }
-                }
-                attr.result = result;
-                attr[3].inter = result;
-                return attr;
-            },
-            {nter:"Y"},
-            function(attr){
-                if(attr[3].result){
-                    attr.result = attr[3].result;
-                    return attr;
-                }
-            },
-        ],
-        "avg":[],
-        "total":[],
+        "":[],
+        ";":[],
         ")":[],
-        "|":[]
     },
-    "R":{
-        "id":[
-            "id",
-            function(attr){attr.val = attr[0].lexval; return attr;}
+    "term":{
+        "(":[
+            {nter:"factor"},
+            function(a){
+                a[2].val = a[0].val;
+                return a;
+            },
+            {nter:"term_t"},
+            function(a){
+                a.val = a[2].val;
+                return a;
+            },
         ],
-        "|":[]
+        "number":[
+            {nter:"factor"},
+            function(a){
+                a[2].val = a[0].val;
+                return a;
+            },
+            {nter:"term_t"},
+            function(a){
+                a.val = a[2].val;
+                return a;
+            },
+        ],
     },
-    "A":{
-        "avg":[
-            "avg",
-            function(attr){
-                var sum = 0;
-                for(var k in attr.val){
-                    if(typeof attr.val[k] !== "number")
-                        throw "Some elements are not number!";
-                    sum += attr.val[k];
-                }
-                attr.result = "Average: " + (sum/attr.val.length);
-                return attr;
-            }
+    "term_t":{
+        "*":[
+            "*",{nter:"term"},
+            function(a){
+                a.val *= a[1].val;
+                return a;
+            },
         ],
-        "total":[
-            "total",
-            function(attr){
-                var sum = 0;
-                for(var k in attr.val){
-                    if(typeof attr.val[k] !== "number")
-                        throw "Some elements are not number!";
-                    sum += attr.val[k];
-                }
-                attr.result = "Total: " + (sum);
-                return attr;
-            }
+        "/":[
+            "/",{nter:"term"},
+            function(a){
+                a.val /= a[1].val;
+                return a;
+            },
         ],
-        ")":[]
+        "+":[],
+        "-":[],
+        ";":[],
+        "":[],
+        ")":[],
+    },
+    "factor":{
+        "(":[
+            "(",{nter:"expression"},")",
+            function(a){
+                a.val = a[1].val;
+                return a;
+            },
+        ],
+        "number":[
+            "number",
+            function(a){
+                a.val = parseFloat(a[0].lexval);
+                return a;
+            },
+        ],
     }
 };
 
 var lexer_rule = {
     "start":{
-        "char":"char",
-        "int":"int",
-        "float":"float",
-        "print":"print",
-        "avg":"avg",
-        "total":"total",
-        "digit":"[0-9]",
-        "letter":"[a-z]",
-        "id":"[A-Z]",
+        "number":"[0-9]",
+        ";":";",
         "+":"\\+",
         "-":"\\-",
         "*":"\\*",
-        ",":",",
-        ";":";",
+        "/":"/",
         "(":"\\(",
         ")":"\\)",
-        "=":"=",
-        "{":"\\{",
-        "}":"\\}",
-        "|":"\\|",
-        ".":"\\.",
         "ignored":" |\n",
     },
-    "char":{
+    "number":{
+        "number":"[0-9]|\\.",
+        "number_e":"E",
         "Accepted":true
     },
-    "int":{
-        "Accepted":true
+    "number_e":{
+        "number":"[0-9]",
+        "number_e":"\\+|\\-",
     },
-    "float":{
-        "Accepted":true
-    },
-    "print":{
-        "Accepted":true
-    },
-    "avg":{
-        "Accepted":true
-    },
-    "total":{
-        "Accepted":true
-    },
-    "digit":{
-        "digit":"[0-9]",
-        "fdigit":"\\.",
-        "Accepted":true
-    },
-    "fdigit":{
-        "fdigit":"[0-9]",
-        "Accepted":true
-    },
-    "letter":{
-        "Accepted":true
-    },
-    "id":{
-        "id":"[A-Z]",
+    ";":{
         "Accepted":true
     },
     "+":{
@@ -427,31 +220,13 @@ var lexer_rule = {
     "*":{
         "Accepted":true
     },
-    ",":{
-        "Accepted":true
-    },
-    ";":{
+    "/":{
         "Accepted":true
     },
     "(":{
         "Accepted":true
     },
     ")":{
-        "Accepted":true
-    },
-    "=":{
-        "Accepted":true
-    },
-    "{":{
-        "Accepted":true
-    },
-    "}":{
-        "Accepted":true
-    },
-    "|":{
-        "Accepted":true
-    },
-    ".":{
         "Accepted":true
     }
 }
@@ -469,13 +244,13 @@ function var_dump(msg){
 
 var lex_result,par_result;
 
-var fs = require('fs');
-var contents = fs.readFileSync('README.md', 'utf8').toString();
+// var fs = require('fs');
+// var contents = fs.readFileSync('README.md', 'utf8').toString();
+var contents = "Hello world. This is a simple caculator\n";
 console.log(contents + "Please input: (input 'exit' to exit)");
 
 while((input = readlineSync.question('> ')) != "exit"){
     try{
-
         var_dump("Lexer starting: ======================");
         lex_result = lex.scan(input);
         var_dump("Lexer result: ======================");
@@ -485,9 +260,6 @@ while((input = readlineSync.question('> ')) != "exit"){
         par_result = par.scan(lex_result);
         var_dump("Parser result: ======================");
         var_dump(par_result);
-
-        var_dump("symbol_table:");
-        var_dump(symbol_table);
     }catch(msg){
         console.log(msg);
     }
